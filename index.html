@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The destruction of Pompeii</title>
+    <style>
+        :root {
+            --primary-color: #8B0000; /* Dark Roman Red */
+            --secondary-color: #2c3e50; /* Dark Slate */
+            --accent-color: #e74c3c; /* Bright Red */
+            --bg-color: #fdfbf7; /* Parchment */
+            --text-color: #333;
+            --tooltip-bg: #1a1a1a;
+            --collocation-bg: #f0f4f8;
+            --correct-color: #27ae60;
+            --wrong-color: #c0392b;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: white;
+            padding: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 4px solid var(--primary-color);
+        }
+
+        header img {
+            height: 65px;
+            width: auto;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* --- Main Layout --- */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1300px;
+            margin: 40px auto;
+            gap: 40px;
+            padding: 0 20px;
+            align-items: flex-start;
+        }
+
+        /* Video Wrapper - Reduced size (30% width / 400px max) */
+        .video-wrapper {
+            flex: 0 0 30%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid var(--secondary-color);
+            position: sticky;
+            top: 20px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Text Wrapper */
+        .text-wrapper {
+            flex: 1;
+            font-size: 1.15rem;
+            text-align: justify;
+            padding-left: 20px;
+            border-left: 1px solid #ccc;
+        }
+
+        /* --- Glossary Tooltips --- */
+        .glossary-term {
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: help;
+            border-bottom: 2px dotted var(--primary-color);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .glossary-term:hover {
+            color: white;
+            background-color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .glossary-term::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 140%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--tooltip-bg);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            white-space: normal;
+            min-width: 220px;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+
+        .glossary-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Quiz Section --- */
+        .quiz-section {
+            max-width: 1000px;
+            margin: 60px auto;
+            padding: 30px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .quiz-section h2 {
+            text-align: center;
+            color: var(--secondary-color);
+            font-size: 2rem;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .quiz-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .quiz-question {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-btn {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .quiz-btn:hover {
+            background-color: #f0f0f0;
+            border-color: var(--secondary-color);
+        }
+
+        .quiz-btn.correct {
+            background-color: var(--correct-color);
+            color: white;
+            border-color: var(--correct-color);
+        }
+
+        .quiz-btn.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+            border-color: var(--wrong-color);
+        }
+
+        .quiz-feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        /* --- Vocabulary Section --- */
+        .vocab-section {
+            max-width: 1300px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .vocab-section h2 {
+            text-align: center;
+            color: var(--secondary-color);
+            font-size: 2.2rem;
+            margin-bottom: 50px;
+            border-bottom: 3px double var(--secondary-color);
+            display: inline-block;
+            padding-bottom: 10px;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .vocab-category-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            align-items: start;
+        }
+
+        .category-column h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 1.1rem; /* Reduced font size */
+            white-space: nowrap; /* Single line forced */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            background: #fdfbf7;
+        }
+
+        /* Collapsible Styling */
+        details {
+            background-color: white;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        details:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        details[open] {
+            border-left: 6px solid var(--primary-color);
+        }
+
+        summary {
+            padding: 14px 15px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--secondary-color);
+            font-size: 1.05rem;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fafafa;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+
+        summary::after {
+            content: '+';
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        details[open] summary::after { content: '-'; }
+
+        details[open] summary {
+            background-color: #f0f0f0;
+            color: var(--primary-color);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .vocab-content {
+            padding: 15px;
+            font-size: 0.95rem;
+        }
+
+        .vocab-content p { margin: 6px 0; }
+        .vocab-content strong { color: var(--secondary-color); }
+
+        /* Collocations Box */
+        .collocations {
+            margin-top: 10px;
+            background-color: var(--collocation-bg);
+            padding: 10px;
+            border-radius: 4px;
+            font-style: italic;
+            border-left: 3px solid var(--secondary-color);
+            font-size: 0.9rem;
+        }
+        .collocations span {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            font-style: normal;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 80px;
+            font-family: 'Arial', sans-serif;
+            font-size: 0.95rem;
+            border-top: 6px solid var(--primary-color);
+        }
+
+        @media (max-width: 900px) {
+            .container { flex-direction: column; }
+            .video-wrapper { 
+                flex: 1 1 100%; 
+                max-width: 100%; 
+                position: static; 
+                margin-bottom: 20px;
+            }
+            .text-wrapper { 
+                border-left: none; 
+                padding-left: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="pdhub-logo.png" alt="PD Hub Logo">
+        <h1>The destruction of Pompeii</h1>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="video-wrapper">
+                <video controls>
+                    <source src="Pompei Destruction.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div class="text-wrapper">
+                <p>
+                    In the year 79 AD, Pompeii was a <span class="glossary-term" data-tooltip="Prospering; growing or developing well and vigorously">thriving</span> Roman resort city, home to 20,000 people living in the shadow of Mount Vesuvius.
+                </p>
+                <p>
+                    On August 24th, the mountain exploded in one of history's most catastrophic volcanic eruptions, sending a <span class="glossary-term" data-tooltip="Extremely tall or high; rising to a great height">towering</span> column of ash and <span class="glossary-term" data-tooltip="A very light and porous volcanic rock formed when a gas-rich froth of glassy lava solidifies rapidly">pumice</span> 20 miles high.
+                </p>
+                <p>
+                    For twelve hours, pumice stones and ash rained down on the city, <span class="glossary-term" data-tooltip="Gathering together or piling up gradually over time">accumulating</span> at nearly 6 inches per hour.
+                </p>
+                <p>
+                    Then came the deadly <span class="glossary-term" data-tooltip="Pyroclastic: Fragments of rock erupted by a volcano. Surge: A sudden powerful forward or upward movement">pyroclastic surge</span>, a 400°F wave of superheated gas and ash that <span class="glossary-term" data-tooltip="Happening immediately; at once">instantly</span> killed everything in its path.
+                </p>
+                <p>
+                    When it was over, Pompeii lay buried under 20 feet of volcanic material, completely forgotten for nearly 1,700 years.
+                </p>
+                <p>
+                    The same ash that destroyed the city perfectly preserved it, creating <span class="glossary-term" data-tooltip="Hollow containers used to give shape to molten or hot liquid material">molds</span> of people and animals in their final moments.
+                </p>
+                <p>
+                    These <span class="glossary-term" data-tooltip="Poignant and evocative; difficult to ignore or forget; having a ghostly quality">haunting</span> casts capture the exact positions of people as they died, some <span class="glossary-term" data-tooltip="Holding tightly; grasping firmly, often due to fear or affection">clutching</span> loved ones or <span class="glossary-term" data-tooltip="Protecting from a danger, risk, or unpleasant experience">shielding</span> their faces.
+                </p>
+                <p>
+                    Today, Pompeii gives us an <span class="glossary-term" data-tooltip="Never done or known before; without previous example">unprecedented</span> look at Roman life, from bakeries with bread still in the oven, to <span class="glossary-term" data-tooltip="Full of energy and enthusiasm; (of color) bright and striking">vibrant</span> wall paintings.
+                </p>
+                <p>
+                    The city remains both a tragic tomb and an incredible time capsule, teaching us about ancient life while reminding us of nature's power.
+                </p>
+            </div>
+        </div>
+
+        <div class="quiz-section">
+            <h2>Reading Comprehension Check</h2>
+
+            <div class="quiz-item" id="q1">
+                <div class="quiz-question">1. Based on the accumulation rate mentioned in the text, approximately how deep was the layer of pumice and ash <em>before</em> the pyroclastic surge arrived?</div>
+                <div class="quiz-options">
+                    <button class="quiz-btn" onclick="checkAnswer('q1', 'a')">A) 20 feet</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q1', 'b')">B) 6 feet</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q1', 'c')">C) 12 inches</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q1', 'd')">D) 20 miles</button>
+                </div>
+                <div class="quiz-feedback" id="feedback-q1"></div>
+            </div>
+
+            <div class="quiz-item" id="q2">
+                <div class="quiz-question">2. The text suggests that the preservation of the victims' forms was caused by a paradox. What was that paradox?</div>
+                <div class="quiz-options">
+                    <button class="quiz-btn" onclick="checkAnswer('q2', 'a')">A) The extreme heat that killed them also froze their bodies instantly in stone.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q2', 'b')">B) The same ash that destroyed the city created the molds that preserved their image.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q2', 'c')">C) The pumice stones were light enough to float but heavy enough to crush the buildings.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q2', 'd')">D) The city was forgotten for 1,700 years but was actually a thriving resort.</button>
+                </div>
+                <div class="quiz-feedback" id="feedback-q2"></div>
+            </div>
+
+            <div class="quiz-item" id="q3">
+                <div class="quiz-question">3. What does the term "pyroclastic surge" specifically refer to in the context of the destruction?</div>
+                <div class="quiz-options">
+                    <button class="quiz-btn" onclick="checkAnswer('q3', 'a')">A) A slow accumulation of volcanic rocks falling from the sky.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q3', 'b')">B) The towering column of smoke that rose 20 miles high.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q3', 'c')">C) A wave of superheated gas and ash moving horizontally.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q3', 'd')">D) The flow of liquid lava that melted the city walls.</button>
+                </div>
+                <div class="quiz-feedback" id="feedback-q3"></div>
+            </div>
+
+            <div class="quiz-item" id="q4">
+                <div class="quiz-question">4. Which of the following details is used to illustrate the "unprecedented look at Roman life" mentioned in the text?</div>
+                <div class="quiz-options">
+                    <button class="quiz-btn" onclick="checkAnswer('q4', 'a')">A) The number of people living in the shadow of the mountain.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q4', 'b')">B) The specific date of the eruption (August 24th).</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q4', 'c')">C) The 20-mile height of the ash column.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q4', 'd')">D) Domestic details like bread still remaining in ovens.</button>
+                </div>
+                <div class="quiz-feedback" id="feedback-q4"></div>
+            </div>
+
+            <div class="quiz-item" id="q5">
+                <div class="quiz-question">5. Why did the city remain "forgotten" for nearly 1,700 years?</div>
+                <div class="quiz-options">
+                    <button class="quiz-btn" onclick="checkAnswer('q5', 'a')">A) All records of the city were burned in the surge.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q5', 'b')">B) It was buried under 20 feet of volcanic material.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q5', 'c')">C) The Roman Empire collapsed shortly after the event.</button>
+                    <button class="quiz-btn" onclick="checkAnswer('q5', 'd')">D) It was a secret resort city that few people knew about.</button>
+                </div>
+                <div class="quiz-feedback" id="feedback-q5"></div>
+            </div>
+
+        </div>
+
+        <div class="vocab-section">
+            <h2>Vocabulary Extension</h2>
+            
+            <div class="vocab-category-container">
+                
+                <div class="category-column">
+                    <h3>🌋 Volcanoes & Eruptions</h3>
+                    
+                    <details>
+                        <summary>Eruption (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> An act or instance of erupting; an explosion of steam and lava.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                massive eruption, volcanic eruption, trigger an eruption, violent eruption, predict an eruption.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Dormant (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Temporarily inactive.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                dormant volcano, lie dormant, remain dormant, dormant period, dormant state.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Magma (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Molten rock found beneath the surface of the earth.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                magma chamber, rising magma, magma flow, solidify into rock, pocket of magma.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Seismic (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Relating to earthquakes or other vibrations of the earth.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                seismic activity, seismic wave, seismic shift, seismic event, monitor seismic data.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Crater (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A large, bowl-shaped cavity in the ground or on a volcano.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                volcanic crater, deep crater, form a crater, crater rim, impact crater.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Pumice (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A very light and porous volcanic rock.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                pumice stone, layer of pumice, rain of pumice, pumice dust, light pumice.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Pyroclastic (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Relating to fragments of rock erupted by a volcano.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                pyroclastic flow, pyroclastic surge, pyroclastic material, pyroclastic cloud, pyroclastic density.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Summit (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> The highest point of a hill or mountain.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                reach the summit, mountain summit, summit crater, snow-capped summit, scale the summit.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Vent (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> An opening that allows air, gas, or liquid to pass out.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                volcanic vent, steam vent, escape through a vent, thermal vent, main vent.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Tectonic (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Relating to the structure of the earth's crust.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                tectonic plates, tectonic shift, tectonic movement, tectonic activity, tectonic force.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="category-column">
+                    <h3>💥 Destruction</h3>
+                    
+                    <details>
+                        <summary>Catastrophic (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Involving or causing sudden great damage or suffering.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                catastrophic failure, catastrophic event, catastrophic loss, prove catastrophic, avoid catastrophic results.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Obliterate (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To destroy utterly; wipe out.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                completely obliterate, threaten to obliterate, virtually obliterated, obliterated from memory, instantly obliterated.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Debris (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Scattered pieces of waste or remains.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                flying debris, clear the debris, buried under debris, falling debris, accumulate debris.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Havoc (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Widespread destruction.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                wreak havoc, cause havoc, create havoc, utter havoc, play havoc with.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Calamity (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> An event causing great and often sudden damage or distress.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                natural calamity, avoid calamity, face calamity, economic calamity, widespread calamity.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Devastate (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To destroy or ruin (something).</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                completely devastate, devastate the area, devastate the economy, be devastated by, leave devastated.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Demolish (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To pull or knock down (a building).</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                demolish a building, completely demolish, slated to be demolished, demolish a structure, demolish the argument.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Ravage (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To cause severe and extensive damage to.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                ravage the country, war-ravaged, ravaged by fire, ravage the coast, completely ravaged.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Annihilate (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To destroy utterly; obliterate.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                totally annihilate, seek to annihilate, annihilate the enemy, threat of annihilation, virtually annihilated.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Ruin (n/v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> The physical destruction or disintegration of something.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                lie in ruins, financial ruin, bring to ruin, ancient ruins, fall into ruin.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="category-column">
+                    <h3>⚰️ Death</h3>
+                    
+                    <details>
+                        <summary>Perish (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To die, typically in a violent, sudden, or untimely way.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                perish in the fire, perish from hunger, thousands perished, perish the thought, perish at sea.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Suffocate (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To die from lack of air or inability to breathe.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                suffocate to death, slowly suffocate, suffocate the flames, nearly suffocate, feel suffocated.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Fatality (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> An occurrence of death by accident, war, or disease.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                high fatality rate, cause fatalities, report fatalities, civilian fatalities, multiple fatalities.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Succumb (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To fail to resist; to die from the effect of a disease or injury.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                succumb to injuries, succumb to illness, succumb to pressure, eventually succumb, succumb to the heat.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Lethal (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Sufficient to cause death; harmful or destructive.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                lethal dose, lethal weapon, lethal injection, lethal force, potentially lethal.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Asphyxiation (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> The state or process of being deprived of oxygen.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                die of asphyxiation, cause asphyxiation, risk of asphyxiation, mechanical asphyxiation, smoke asphyxiation.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Casualty (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A person killed or injured in a war or accident.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                heavy casualties, civilian casualties, suffer casualties, inflict casualties, casualty list.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Corpse (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A dead body, especially of a human being.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                rotting corpse, identify the corpse, discovery of a corpse, buried corpse, corpse reviver.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Mortal (adj)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Causing or liable to cause death; fatal.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                mortal wound, mortal danger, mortal enemy, mortal sin, mortal coil.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Demise (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A person's death; the end or failure of an enterprise.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                sudden demise, meet one's demise, untimely demise, lead to the demise, sad demise.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="category-column">
+                    <h3>🏺 Burial & Archaeology</h3>
+                    
+                    <details>
+                        <summary>Excavate (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To remove earth carefully to find buried remains.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                excavate a site, excavate remains, excavate ruins, carefully excavate, partially excavated.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Preserve (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To maintain something in its original or existing state.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                perfectly preserved, preserve history, help preserve, preserve for posterity, well preserved.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Entomb (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To bury or trap in or under something.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                entombed in rock, alive entombed, entombed miners, forever entombed, entombed city.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Artifact (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> An object made by a human being, typically of cultural interest.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                ancient artifact, priceless artifact, recover artifacts, historical artifact, museum artifact.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Resurrect (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To restore to life; to bring a city/memory back.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                resurrect the past, resurrect a career, attempt to resurrect, resurrect the dead, virtually resurrected.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Unearth (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To find something in the ground by digging.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                unearth evidence, unearth a skeleton, unearth secrets, unearth treasures, recently unearthed.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Fragment (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> A small part broken or separated off something.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                pottery fragment, bone fragment, glass fragment, survive in fragments, fragment of history.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Encase (v)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> To enclose or cover in a case or close-fitting surround.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                encase in concrete, encased in ash, protective casing, completely encased, encased in ice.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Sediment (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> Matter that settles to the bottom of a liquid; material deposited by water/wind.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                layers of sediment, sediment build-up, remove sediment, volcanic sediment, rich sediment.
+                            </div>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Restoration (n)</summary>
+                        <div class="vocab-content">
+                            <p><strong>Definition:</strong> The action of returning something to a former owner, place, or condition.</p>
+                            <div class="collocations">
+                                <span>Collocations:</span>
+                                undergoing restoration, restoration project, meticulous restoration, full restoration, restoration work.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        ✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨
+    </footer>
+
+    <script>
+        const answers = {
+            'q1': 'b', // 6 inches/hr * 12 hours = 72 inches = 6 feet
+            'q2': 'b', // Ash destroyed but also preserved
+            'q3': 'c', // Superheated gas and ash wave
+            'q4': 'd', // Bread in ovens
+            'q5': 'b'  // Buried under 20 feet
+        };
+
+        function checkAnswer(questionId, selectedOption) {
+            const feedbackEl = document.getElementById('feedback-' + questionId);
+            const parent = document.getElementById(questionId);
+            const buttons = parent.getElementsByClassName('quiz-btn');
+
+            // Reset buttons
+            for (let btn of buttons) {
+                btn.classList.remove('correct', 'wrong');
+            }
+
+            const correctAnswer = answers[questionId];
+            
+            // Highlight selected button
+            // We need to find the button that was clicked. 
+            // In this simple implementation, we can iterate to find which one matches the selectedOption text logic
+            // Or simpler: match the index.
+            
+            // Let's re-select the specific button clicked based on logic
+            // Actually, to keep it simple, let's just loop and check the onclick attribute or index
+            // But since we passed the option, let's just color them based on correctness.
+
+            for (let i = 0; i < buttons.length; i++) {
+                let btnOption = '';
+                if(i === 0) btnOption = 'a';
+                if(i === 1) btnOption = 'b';
+                if(i === 2) btnOption = 'c';
+                if(i === 3) btnOption = 'd';
+
+                if (btnOption === correctAnswer) {
+                     // If the user selected the wrong answer, we still want to show the correct one?
+                     // Standard practice: if user selected correct, show correct. If wrong, show wrong AND correct.
+                }
+                
+                if (selectedOption === btnOption) {
+                    if (selectedOption === correctAnswer) {
+                        buttons[i].classList.add('correct');
+                        feedbackEl.textContent = "Correct! Well done.";
+                        feedbackEl.style.color = "var(--correct-color)";
+                    } else {
+                        buttons[i].classList.add('wrong');
+                        feedbackEl.textContent = "Incorrect. Try again!";
+                        feedbackEl.style.color = "var(--wrong-color)";
+                    }
+                }
+            }
+            
+            feedbackEl.style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
